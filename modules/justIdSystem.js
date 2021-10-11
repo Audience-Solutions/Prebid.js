@@ -16,8 +16,8 @@ const MODULE_NAME = 'justId';
 const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
 
-const DOMAIN_ATM = 'atm.bt-cera.audience-solutions.com';
-const DOMAIN_ID_SERVER = 'id.bt-cera.audience-solutions.com';
+const DOMAIN_ATM = 'atm.qpa.audience-solutions.com';
+const DOMAIN_ID_SERVER = 'id.qpa.audience-solutions.com';
 const MODE_ATM = 'ATM';
 const MODE_ID_SERVER = 'ID_SERVER';
 const UID_COOKIE_SUFFIX = 'uid';
