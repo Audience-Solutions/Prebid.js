@@ -76,7 +76,8 @@ export const justIdSubmodule = {
 var UidFetcher = function(cbFun, config, consentData) {
   const sourceId = param(config).partner || 'pbjs';
   const atmUrl = `https://${DOMAIN_ATM}/atm.js?sourceId=${sourceId}`;
-  const idServcerUrl = `https://${DOMAIN_ID_SERVER}/getId`;
+  const idServerDomain = param(config).idServerDomain || DOMAIN_ID_SERVER;
+  const idServcerUrl = `https://${idServerDomain}/getId`;
   const mode = param(config).mode || MODE_ID_SERVER;
   const atmVarName = param(config).atmVarName; // set default
   const cookieTtlSeconds = param(config).cookieTtlSeconds || YEAR_IN_SECONDS;
