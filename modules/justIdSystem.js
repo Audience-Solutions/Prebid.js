@@ -17,13 +17,14 @@ const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
 
 const DOMAIN_ATM = 'atm.qpa.audience-solutions.com';
-const DOMAIN_ID_SERVER = 'id.qpa.audience-solutions.com';
+const DOMAIN_ID_SERVER = 'id.nsaudience.pl';
 const MODE_ATM = 'ATM';
 const MODE_ID_SERVER = 'ID_SERVER';
 const UID_COOKIE_SUFFIX = 'uid';
 const UT_COOKIE_SUFFIX = 'ut';
 const DAY_IN_SECONDS = 24 * 60 * 60;
 const YEAR_IN_SECONDS = 365 * DAY_IN_SECONDS;
+const DEBUG_JT_UID_PARAM = '__jtUid';
 
 const storage = getStorageManager(GVLID, MODULE_NAME);
 const pbjs = getGlobal();
@@ -48,6 +49,11 @@ export const justIdSubmodule = {
    */
   decode(value) {
     utils.logInfo(LOG_PREFIX + 'decode', value);
+    var debugUid = getDebugJustId();
+    if(debugUid) {
+      utils.logInfo(LOG_PREFIX + 'decode. Returing debug value', debugUid);
+      return {justId: debugUid};
+    }
     return value && value.uid && {justId: value.uid};
   },
   /**
@@ -71,8 +77,8 @@ var UidFetcher = function(cbFun, config, consentData) {
   const sourceId = param(config).partner || 'pbjs';
   const atmUrl = `https://${DOMAIN_ATM}/atm.js?sourceId=${sourceId}`;
   const idServcerUrl = `https://${DOMAIN_ID_SERVER}/getId`;
-  const mode = param(config).mode || 'ATM';
-  const atmVarName = param(config).atmVarName || '__atm';
+  const mode = param(config).mode || MODE_ID_SERVER;
+  const atmVarName = param(config).atmVarName; // set default
   const cookieTtlSeconds = param(config).cookieTtlSeconds || YEAR_IN_SECONDS;
   const cookieRefreshSeconds = param(config).cookieRefreshSeconds || DAY_IN_SECONDS;
   const cookiePrefix = param(config).cookiePrefix || '__jt';
@@ -102,7 +108,7 @@ var UidFetcher = function(cbFun, config, consentData) {
   }
 
   function atmGetUid() {
-    var atmExist = utils.isFn(window[atmVarName]);
+    var atmExist = atmVarName && utils.isFn(window[atmVarName]);
     if (atmExist) {
       window[atmVarName]('getUid', returnUid);
     }
@@ -184,6 +190,13 @@ function eoin(o) {
 
 function param(c) {
   return eoin(c.params);
+}
+
+function getDebugJustId() {
+  var pageUrl = getPageUrl();
+  if(pageUrl) {
+    return new URL(pageUrl).searchParams.get(DEBUG_JT_UID_PARAM);
+  }
 }
 
 function getPageUrl() {
