@@ -79,17 +79,19 @@ var UidFetcher = function(cbFun, config, consentData) {
   const idServerDomain = param(config).idServerDomain || DOMAIN_ID_SERVER;
   const idServcerUrl = `https://${idServerDomain}/getId`;
   const mode = param(config).mode || MODE_ID_SERVER;
-  const atmVarName = param(config).atmVarName; // set default
-  const cookieTtlSeconds = param(config).cookieTtlSeconds || YEAR_IN_SECONDS;
+  const atmVarName = param(config).atmVarName || '__atm';
+  const cookieTtlSeconds = param(config).cookieTtlSeconds || 2 * YEAR_IN_SECONDS;
   const cookieRefreshSeconds = param(config).cookieRefreshSeconds || DAY_IN_SECONDS;
   const cookiePrefix = param(config).cookiePrefix || '__jt';
+  const uidCookieName = cookiePrefix + UID_COOKIE_SUFFIX;
+  const utCookieName = cookiePrefix + UT_COOKIE_SUFFIX;
   const tcString = eoin(consentData).consentString;
-  const prevStoredId = storage.getCookie(cookiePrefix + UID_COOKIE_SUFFIX);
-  const uidTime = storage.getCookie(cookiePrefix + UT_COOKIE_SUFFIX);
+  const prevStoredId = storage.getCookie(uidCookieName);
+  const uidTime = storage.getCookie(utCookieName);
   const now = new Date().getTime();
 
-  this.fetchUid = function() {
-    if (atmGetUid()) {
+  this.fetchUid = async function() {
+    if (await atmGetUid()) {
       return;
     }
     if (mode === MODE_ATM) {
@@ -108,12 +110,27 @@ var UidFetcher = function(cbFun, config, consentData) {
     }
   }
 
-  function atmGetUid() {
-    var atmExist = atmVarName && utils.isFn(window[atmVarName]);
-    if (atmExist) {
-      window[atmVarName]('getUid', returnUid);
+  async function atmGetUid() {
+    var __atm;
+    var atmExist = atmVarName && utils.isFn(__atm = window[atmVarName]);
+    if (!atmExist) {
+      return false;
     }
-    return atmExist;
+
+    try {
+      // waiting atm (not stub) loaded
+      await promiseWithTimeout(res => __atm('getReadyState', res), 3000);
+    } catch(err) {
+      // timeout, propably atm not loaded in given time
+      return false;
+    }
+
+    var isGetUidSupported = utils.isStr(await __atm('getVersion')); // getVersion command was introduced in same ATM version as getUid command
+
+    if (isGetUidSupported) {
+      __atm('getUid', returnUid);
+    }
+    return isGetUidSupported;
   }
 
   function appendAtmAndRunGetUid() {
@@ -168,8 +185,8 @@ var UidFetcher = function(cbFun, config, consentData) {
     var d = new Date();
     d.setTime(d.getTime() + cookieTtlSeconds * 1000);
     var expires = d.toUTCString();
-    storage.setCookie(cookiePrefix + UID_COOKIE_SUFFIX, uid, expires, null, tld);
-    storage.setCookie(cookiePrefix + UT_COOKIE_SUFFIX, now, expires, null, tld);
+    storage.setCookie(uidCookieName, uid, expires, null, tld);
+    storage.setCookie(utCookieName, now, expires, null, tld);
   }
 
   function returnUid(uid) {
@@ -220,6 +237,22 @@ function getUserIds() {
   if (utils.isFn(pbjs.getUserIds)) {
     return pbjs.getUserIds();
   }
+}
+
+function promiseWithTimeout(promiseFun, time) {
+  return new Promise((res, rej) => {
+    var tm = setTimeout(() => {
+      rej(new Error("timeout"));
+    }, time);
+    
+    function callAndClearTimeout(fn) {
+      return arg => {
+        clearTimeout(tm);
+        return fn(arg);
+      }
+    }
+    promiseFun(callAndClearTimeout(res), callAndClearTimeout(rej));
+  });
 }
 
 submodule('userId', justIdSubmodule);
