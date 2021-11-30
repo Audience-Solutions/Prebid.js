@@ -63,11 +63,15 @@ export const justIdSubmodule = {
    * @returns {IdResponse|undefined}
    */
   getId(config, consentData, cacheIdObj) {
-    utils.logInfo(LOG_PREFIX + 'getId', config, consentData, cacheIdObj);
+    utils.logInfo(LOG_PREFIX + 'getId x', config, consentData, cacheIdObj);
 
     return {
       callback: function(cbFun) {
-        new UidFetcher(cbFun, config, consentData).fetchUid();
+        try {
+          new UidFetcher(cbFun, config, consentData).fetchUid();
+        } catch (e) {
+          utils.logError(LOG_PREFIX, 'Error during fetching...', e);
+        }
       }
     };
   }
@@ -90,47 +94,53 @@ var UidFetcher = function(cbFun, config, consentData) {
   const uidTime = storage.getCookie(utCookieName);
   const now = new Date().getTime();
 
-  this.fetchUid = async function() {
-    if (await atmGetUid()) {
-      return;
-    }
-    if (mode === MODE_ATM) {
-      appendAtmAndRunGetUid();
-    } else if (mode === MODE_ID_SERVER) {
-      if (prevStoredId && now < uidTime + cookieRefreshSeconds * 1000) {
-        utils.logInfo(LOG_PREFIX, 'returning cookie stored UID: ' + prevStoredId);
-        returnUid(prevStoredId);
-      } else {
-        setTimeout(() => {
-          ajax(idServcerUrl, idServerCallback(), JSON.stringify(prepareIdServerRequest()), { method: 'POST', withCredentials: true });
-        }, 1);
+  this.fetchUid = function() {
+    utils.logInfo(LOG_PREFIX, 'fetching uid...');
+
+    atmGetUid().then(result => {
+      if(result) {
+        return;
       }
-    } else {
-      utils.logError(LOG_PREFIX + 'Invalid mode: ' + mode);
-    }
+      utils.logInfo(LOG_PREFIX, 'ATM not found!');
+      if (mode === MODE_ATM) {
+        appendAtmAndRunGetUid();
+      } else if (mode === MODE_ID_SERVER) {
+        if (prevStoredId && now < uidTime + cookieRefreshSeconds * 1000) {
+          utils.logInfo(LOG_PREFIX, 'returning cookie stored UID', prevStoredId);
+          returnUid(prevStoredId);
+        } else {
+          setTimeout(() => {
+            ajax(idServcerUrl, idServerCallback(), JSON.stringify(prepareIdServerRequest()), { method: 'POST', withCredentials: true });
+          }, 1);
+        }
+      } else {
+        utils.logError(LOG_PREFIX + 'Invalid mode: ' + mode);
+      }
+    });
   }
 
-  async function atmGetUid() {
-    var __atm;
-    var atmExist = atmVarName && utils.isFn(__atm = window[atmVarName]);
+  function atmGetUid() {
+    var atm = window[atmVarName];
+    var atmExist = atm && typeof atm === 'function';
     if (!atmExist) {
-      return false;
+      utils.logInfo(LOG_PREFIX, 'ATM variable not found!', atmVarName, atm);
+      return Promise.resolve(false);
     }
 
-    try {
-      // waiting atm (not stub) loaded
-      await promiseWithTimeout(res => __atm('getReadyState', res), 3000);
-    } catch(err) {
-      // timeout, propably atm not loaded in given time
-      return false;
-    }
+    return promiseWithTimeout(res => atm('getReadyState', res), 3000)
+      .then(() => atm('getVersion'), err => {
+        utils.logInfo(LOG_PREFIX, atmVarName + ' getReadyState timeout');
+        return false;
+      })
+      .then(atmVersion => {
+        utils.logInfo(LOG_PREFIX, 'ATM Version: ' + atmVersion);
+        var isGetUidSupported = utils.isStr(atmVersion); // getVersion command was introduced in same ATM version as getUid command
 
-    var isGetUidSupported = utils.isStr(await __atm('getVersion')); // getVersion command was introduced in same ATM version as getUid command
-
-    if (isGetUidSupported) {
-      __atm('getUid', returnUid);
-    }
-    return isGetUidSupported;
+        if (isGetUidSupported) {
+          atm('getUid', returnUid);
+        }
+        return isGetUidSupported;
+      });
   }
 
   function appendAtmAndRunGetUid() {
