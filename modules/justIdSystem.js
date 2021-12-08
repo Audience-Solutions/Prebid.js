@@ -16,10 +16,7 @@ const MODULE_NAME = 'justId';
 const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
 
-const DOMAIN_ATM = 'atm.qpa.audience-solutions.com';
 const DOMAIN_ID_SERVER = 'id.nsaudience.pl';
-const MODE_ATM = 'ATM';
-const MODE_ID_SERVER = 'ID_SERVER';
 const UID_COOKIE_SUFFIX = 'uid';
 const UT_COOKIE_SUFFIX = 'ut';
 const DAY_IN_SECONDS = 24 * 60 * 60;
@@ -48,13 +45,13 @@ export const justIdSubmodule = {
    * @returns {{tdid:Object}}
    */
   decode(value) {
-    utils.logInfo(LOG_PREFIX + 'decode', value);
+    utils.logInfo(LOG_PREFIX, 'decode', value);
     var debugUid = getDebugJustId();
     if(debugUid) {
-      utils.logInfo(LOG_PREFIX + 'decode. Returing debug value', debugUid);
-      return {justId: debugUid};
+      utils.logInfo(LOG_PREFIX, 'decode - debug justId', debugUid);
     }
-    return value && value.uid && {justId: value.uid};
+    var justId = debugUid || value && value.uid;
+    return justId && {justId: justId};
   },
   /**
    * performs action to obtain id and return a value in the callback's response argument
@@ -63,7 +60,7 @@ export const justIdSubmodule = {
    * @returns {IdResponse|undefined}
    */
   getId(config, consentData, cacheIdObj) {
-    utils.logInfo(LOG_PREFIX + 'getId x', config, consentData, cacheIdObj);
+    utils.logInfo(LOG_PREFIX, 'getId', config, consentData, cacheIdObj);
 
     return {
       callback: function(cbFun) {
@@ -78,11 +75,8 @@ export const justIdSubmodule = {
 };
 
 var UidFetcher = function(cbFun, config, consentData) {
-  const sourceId = param(config).partner || 'pbjs';
-  const atmUrl = `https://${DOMAIN_ATM}/atm.js?sourceId=${sourceId}`;
   const idServerDomain = param(config).idServerDomain || DOMAIN_ID_SERVER;
   const idServcerUrl = `https://${idServerDomain}/getId`;
-  const mode = param(config).mode || MODE_ID_SERVER;
   const atmVarName = param(config).atmVarName || '__atm';
   const cookieTtlSeconds = param(config).cookieTtlSeconds || 2 * YEAR_IN_SECONDS;
   const cookieRefreshSeconds = param(config).cookieRefreshSeconds || DAY_IN_SECONDS;
@@ -97,58 +91,46 @@ var UidFetcher = function(cbFun, config, consentData) {
   this.fetchUid = function() {
     utils.logInfo(LOG_PREFIX, 'fetching uid...');
 
-    atmGetUid().then(result => {
-      if(result) {
+    atmGetUid().then(atmGetUidSupported => {
+      if(atmGetUidSupported) {
         return;
       }
       utils.logInfo(LOG_PREFIX, 'ATM not found!');
-      if (mode === MODE_ATM) {
-        appendAtmAndRunGetUid();
-      } else if (mode === MODE_ID_SERVER) {
-        if (prevStoredId && now < uidTime + cookieRefreshSeconds * 1000) {
-          utils.logInfo(LOG_PREFIX, 'returning cookie stored UID', prevStoredId);
-          returnUid(prevStoredId);
-        } else {
-          setTimeout(() => {
-            ajax(idServcerUrl, idServerCallback(), JSON.stringify(prepareIdServerRequest()), { method: 'POST', withCredentials: true });
-          }, 1);
-        }
+      if (prevStoredId && now < uidTime + cookieRefreshSeconds * 1000) {
+        utils.logInfo(LOG_PREFIX, 'returning cookie stored UID', prevStoredId);
+        returnUid(prevStoredId);
       } else {
-        utils.logError(LOG_PREFIX + 'Invalid mode: ' + mode);
+        setTimeout(() => {
+          ajax(idServcerUrl, idServerCallback(), JSON.stringify(prepareIdServerRequest()), { method: 'POST', withCredentials: true });
+        }, 1);
       }
     });
   }
 
   function atmGetUid() {
     var atm = window[atmVarName];
-    var atmExist = atm && typeof atm === 'function';
+    var atmExist = typeof atm === 'function';
     if (!atmExist) {
-      utils.logInfo(LOG_PREFIX, 'ATM variable not found!', atmVarName, atm);
+      utils.logInfo(LOG_PREFIX, 'ATM function not found!', atmVarName, atm);
       return Promise.resolve(false);
     }
 
     return promiseWithTimeout(res => atm('getReadyState', res), 3000)
-      .then(() => atm('getVersion'), err => {
-        utils.logInfo(LOG_PREFIX, atmVarName + ' getReadyState timeout');
+      .then(() => {
+        return Promise.resolve(atm('getVersion')) // string || Promise<string>
+          .then(atmVersion => {
+            utils.logInfo(LOG_PREFIX, 'ATM Version', atmVersion);
+            var isGetUidSupported = utils.isStr(atmVersion); // getVersion command was introduced in same ATM version as getUid command
+
+            if (isGetUidSupported) {
+              atm('getUid', returnUid);
+            }
+            return isGetUidSupported;
+          });
+      }, err => {
+        utils.logInfo(LOG_PREFIX, 'getReadyState timeout', atmVarName, err);
         return false;
-      })
-      .then(atmVersion => {
-        utils.logInfo(LOG_PREFIX, 'ATM Version: ' + atmVersion);
-        var isGetUidSupported = utils.isStr(atmVersion); // getVersion command was introduced in same ATM version as getUid command
-
-        if (isGetUidSupported) {
-          atm('getUid', returnUid);
-        }
-        return isGetUidSupported;
       });
-  }
-
-  function appendAtmAndRunGetUid() {
-    var script = document.createElement('script');
-    script.src = atmUrl;
-    script.async = true;
-    script.onload = () => atmGetUid();
-    utils.insertElement(script);
   }
 
   function prepareIdServerRequest() {
@@ -170,22 +152,22 @@ var UidFetcher = function(cbFun, config, consentData) {
   function idServerCallback() {
     return {
       success: response => {
-        utils.logInfo(LOG_PREFIX + 'getId response: ', response);
+        utils.logInfo(LOG_PREFIX, 'getId response: ', response);
 
         try {
           if (utils.isEmpty(response)) {
-            utils.logError(LOG_PREFIX + 'empty getId response');
+            utils.logError(LOG_PREFIX, 'empty getId response');
             return;
           }
           var responseObj = JSON.parse(response);
           returnUid(responseObj.uid);
           setUidCookie(responseObj.uid, responseObj.tld);
         } catch (e) {
-          utils.logError(LOG_PREFIX + 'error on parsing getId response', e);
+          utils.logError(LOG_PREFIX, 'error on parsing getId response', e);
         }
       },
       error: error => {
-        utils.logError(LOG_PREFIX + 'error during getId request', error);
+        utils.logError(LOG_PREFIX, 'error during getId request', error);
         cbFun();
       }
     }
@@ -201,11 +183,11 @@ var UidFetcher = function(cbFun, config, consentData) {
 
   function returnUid(uid) {
     if (!utils.isFn(cbFun)) {
-      utils.logError(LOG_PREFIX + 'cbFun is not function!');
+      utils.logError(LOG_PREFIX, 'cbFun is not function!');
       return;
     }
     if (utils.isEmptyStr(uid)) {
-      utils.logError(LOG_PREFIX + 'empty uid!');
+      utils.logError(LOG_PREFIX, 'empty uid!');
       return;
     }
     cbFun({uid: uid});
