@@ -48,6 +48,12 @@ const USER_IDS_CONFIG = {
     }
   },
 
+  // justId
+  'justId': {
+    source: 'justtag.com',
+    atype: 1
+  },
+
   // parrableId
   'parrableId': {
     source: 'parrable.com',
