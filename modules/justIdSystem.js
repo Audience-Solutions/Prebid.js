@@ -9,7 +9,7 @@ import * as utils from '../src/utils.js'
 import {submodule} from '../src/hook.js'
 
 const MODULE_NAME = 'justId';
-const LOG_PREFIX = 'User ID - JustId submodule';
+const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
 const DEFAULT_URL = "https://id.nsaudience.pl/getId.js";
 const DEFAULT_PARTNER = "pbjs-just-id-module";
