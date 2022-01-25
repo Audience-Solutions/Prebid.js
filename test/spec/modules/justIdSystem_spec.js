@@ -37,8 +37,8 @@ describe('JustIdSystem', function () {
     const scriptTag = document.createElement('script');
 
     const onPrebidGetId = sinon.stub().callsFake(event => {
-      var previousId = event.detail && event.detail.cacheIdObj;
-      var justId = (previousId && previousId.uid && previousId.uid + '-x') || 'user123';
+      var cacheIdObj = event.detail && event.detail.cacheIdObj;
+      var justId = (cacheIdObj && cacheIdObj.uid && cacheIdObj.uid + '-x') || 'user123';
       scriptTag.dispatchEvent(new CustomEvent('justIdReady', { detail: { justId: justId } }));
     });
 
