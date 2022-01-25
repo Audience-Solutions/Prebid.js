@@ -11,8 +11,8 @@ import {submodule} from '../src/hook.js'
 const MODULE_NAME = 'justId';
 const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
-const DEFAULT_URL = "https://id.nsaudience.pl/getId.js";
-const DEFAULT_PARTNER = "pbjs-just-id-module";
+const DEFAULT_URL = 'https://id.nsaudience.pl/getId.js';
+const DEFAULT_PARTNER = 'pbjs-just-id-module';
 
 /** @type {Submodule} */
 export const justIdSubmodule = {
@@ -34,7 +34,7 @@ export const justIdSubmodule = {
    */
   decode(value) {
     utils.logInfo(LOG_PREFIX, 'decode', value);
-    const justId = value?.uid;
+    const justId = value && value.uid;
     return justId && {justId: justId};
   },
 
@@ -46,18 +46,15 @@ export const justIdSubmodule = {
    */
   getId(config, consentData, cacheIdObj) {
     utils.logInfo(LOG_PREFIX, 'getId', config, consentData, cacheIdObj);
-    const url = new URL(config?.params?.url || DEFAULT_URL);
-    url.searchParams.append("sourceId",  config?.params?.partner || DEFAULT_PARTNER);
+    const url = jtUtils.getUrl(config);
 
     return {
       callback: function(cbFun) {
-        const scriptTag = document.createElement('script');
-        scriptTag.async = true;
-        scriptTag.src = url;
+        const scriptTag = jtUtils.createScriptTag(url);
 
         scriptTag.addEventListener('justIdReady', event => {
           utils.logInfo(LOG_PREFIX, 'received justId', event);
-          var justId = event?.detail?.justId;
+          var justId = event.detail && event.detail.justId;
           cbFun(utils.isStr(justId) && { uid: justId });
         });
 
@@ -71,5 +68,22 @@ export const justIdSubmodule = {
     };
   }
 };
+
+export const jtUtils = {
+  createScriptTag(url) {
+    const scriptTag = document.createElement('script');
+    scriptTag.async = true;
+    scriptTag.src = url;
+    return scriptTag;
+  },
+  getUrl(config) {
+    const p = config && config.params;
+    const u = p && p.url;
+    const partner = p && p.partner;
+    const url = new URL(u || DEFAULT_URL);
+    url.searchParams.append('sourceId', partner || DEFAULT_PARTNER);
+    return url;
+  }
+}
 
 submodule('userId', justIdSubmodule);

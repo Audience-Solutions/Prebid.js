@@ -28,7 +28,15 @@ userIdAsEids = [
             atype: 1
         }]
     },
-    
+
+    {
+        source: 'justtag.com',
+        uids: [{
+            id: 'justId',
+            atype: 1
+        }]
+    },
+
     {
         source: 'neustar.biz',
         uids: [{
