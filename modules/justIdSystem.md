@@ -2,6 +2,12 @@
 
 For assistance setting up your module please contact us at [prebid@justtag.com](prebid@justtag.com).
 
+First, make sure to add the JustId submodule to your Prebid.js package with:
+
+```
+gulp build --modules=userId,justIdSystem
+```
+
 ### Prebid Params
 
 Individual params may be set for the IDx Submodule.
