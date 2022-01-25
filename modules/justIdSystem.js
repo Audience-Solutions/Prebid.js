@@ -34,7 +34,7 @@ export const justIdSubmodule = {
    */
   decode(value) {
     utils.logInfo(LOG_PREFIX, 'decode', value);
-    const justId = value && value.uid;
+    const justId = value?.uid;
     return justId && {justId: justId};
   },
 
@@ -52,7 +52,6 @@ export const justIdSubmodule = {
     return {
       callback: function(cbFun) {
         const scriptTag = document.createElement('script');
-        scriptTag.type = 'text/javascript';
         scriptTag.async = true;
         scriptTag.src = url;
 
