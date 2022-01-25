@@ -22,7 +22,17 @@ let consoleLogExists = Boolean(consoleExists && window.console.log);
 let consoleInfoExists = Boolean(consoleExists && window.console.info);
 let consoleWarnExists = Boolean(consoleExists && window.console.warn);
 let consoleErrorExists = Boolean(consoleExists && window.console.error);
-var events = require('./events.js');
+
+const emitEvent = (function () {
+  // lazy load events to avoid circular import
+  let ev;
+  return function() {
+    if (ev == null) {
+      ev = require('./events.js');
+    }
+    return ev.emit.apply(ev, arguments);
+  }
+})();
 
 // this allows stubbing of utility functions that are used internally by other utility functions
 export const internal = {
@@ -265,14 +275,14 @@ export function logWarn() {
   if (debugTurnedOn() && consoleWarnExists) {
     console.warn.apply(console, decorateLog(arguments, 'WARNING:'));
   }
-  events.emit(CONSTANTS.EVENTS.AUCTION_DEBUG, {type: 'WARNING', arguments: arguments});
+  emitEvent(CONSTANTS.EVENTS.AUCTION_DEBUG, {type: 'WARNING', arguments: arguments});
 }
 
 export function logError() {
   if (debugTurnedOn() && consoleErrorExists) {
     console.error.apply(console, decorateLog(arguments, 'ERROR:'));
   }
-  events.emit(CONSTANTS.EVENTS.AUCTION_DEBUG, {type: 'ERROR', arguments: arguments});
+  emitEvent(CONSTANTS.EVENTS.AUCTION_DEBUG, {type: 'ERROR', arguments: arguments});
 }
 
 function decorateLog(args, prefix) {
@@ -1272,7 +1282,18 @@ export function mergeDeep(target, ...sources) {
         if (!target[key]) {
           Object.assign(target, { [key]: source[key] });
         } else if (isArray(target[key])) {
-          target[key] = target[key].concat(source[key]);
+          source[key].forEach(obj => {
+            let addItFlag = 1;
+            for (let i = 0; i < target[key].length; i++) {
+              if (deepEqual(target[key][i], obj)) {
+                addItFlag = 0;
+                break;
+              }
+            }
+            if (addItFlag) {
+              target[key].push(obj);
+            }
+          });
         }
       } else {
         Object.assign(target, { [key]: source[key] });
