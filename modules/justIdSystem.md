@@ -26,4 +26,4 @@ The below parameters apply only to the justId integration.
 | name | Required | String | ID of the module - `'justId'` | `'justId'` |
 | params | Optional | Object | Details for justId syncing. | |
 | params.url | Optional | String | Our API Url | `'https://id.nsaudience.pl/getId.js'` |
-| params.partner | Optional | String | This is the JustTag Partner Id. | `'some-publisher'` |
+| params.partner | Optional | String | This is the JustTag Partner Id which may be required in some custom integrations with JustTag | `'some-publisher'` |
