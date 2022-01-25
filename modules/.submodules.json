@@ -17,6 +17,7 @@
     "idxIdSystem",
     "imuIdSystem",
     "intentIqIdSystem",
+    "justIqIdSystem",
     "kinessoIdSystem",
     "liveIntentIdSystem",
     "lotamePanoramaIdSystem",
