@@ -53,7 +53,7 @@ describe('JustIdSystem', function () {
 
       scriptTag.onload();
 
-      expect(callbackSpy.lastCall.lastArg.uid).to.deep.equal('user123');
+      expect(callbackSpy.lastCall.lastArg.uid).to.equal('user123');
     });
 
     it('with cachedIdObj', function() {
