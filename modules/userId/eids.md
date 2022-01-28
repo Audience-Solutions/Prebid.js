@@ -3,6 +3,14 @@
 ```
 userIdAsEids = [
     {
+        source: 'trustpid.com',
+        uids: [{
+            id: 'some-random-id-value',
+            atype: 1
+        }]
+    },
+
+    {
         source: 'pubcid.org',
         uids: [{
             id: 'some-random-id-value',
@@ -211,7 +219,7 @@ userIdAsEids = [
             id: 'some-random-id-value',
             atype: 3
         }]
-    }, 
+    },
     {
          source: 'kpuid.com',
          uids: [{
