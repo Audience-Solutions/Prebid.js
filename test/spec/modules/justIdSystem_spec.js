@@ -1,28 +1,48 @@
-import { justIdSubmodule, jtUtils } from 'modules/justIdSystem.js';
+import { justIdSubmodule, ConfigWrapper, ExternalUidProvider, jtUtils } from 'modules/justIdSystem.js';
 
-const DEFAULT_URL = 'https://id.nsaudience.pl/getId.js';
+const DEFAULT_DOMAIN = 'id.nsaudience.pl';
 const DEFAULT_PARTNER = 'pbjs-just-id-module';
 
 describe('JustIdSystem', function () {
   describe('getUrl', function() {
     it('defaultUrl', function() {
-      expect(jtUtils.getUrl({}).toString()).to.eq(expectedUrl(DEFAULT_URL, DEFAULT_PARTNER));
+      expect(new ConfigWrapper({}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, true, DEFAULT_PARTNER));
     })
 
     it('customPartner', function() {
       const partner = 'abc';
-      expect(jtUtils.getUrl({params: {partner: partner}}).toString()).to.eq(expectedUrl(DEFAULT_URL, partner));
+      expect(new ConfigWrapper({params: {partner: partner}}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, true, partner));
     })
 
-    it('customUrl', function() {
-      const url = 'https://example.com/getId.js';
-      expect(jtUtils.getUrl({params: {url: url}}).toString()).to.eq(expectedUrl(url, DEFAULT_PARTNER));
+    it('customDomain', function() {
+      const domain = 'example.com';
+      expect(new ConfigWrapper({params: {domain: domain}}).getUrl().toString()).to.eq(expectedUrl(domain, true, DEFAULT_PARTNER));
     })
 
-    it('customPartnerAndUrl', function() {
+    it('customPartnerAndDomain', function() {
       const partner = 'abc';
-      const url = 'https://example.com/getId.js';
-      expect(jtUtils.getUrl({params: {partner: partner, url: url}}).toString()).to.eq(expectedUrl(url, partner));
+      const domain = 'example.com';
+      expect(new ConfigWrapper({params: {partner: partner, domain: domain}}).getUrl().toString()).to.eq(expectedUrl(domain, true, partner));
+    })
+
+    it('defaultUrlIdServer', function() {
+      expect(new ConfigWrapper({ params: { mode:'INTERNAL' } }).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, false, DEFAULT_PARTNER));
+    })
+
+    it('customPartnerIdServer', function() {
+      const partner = 'abc';
+      expect(new ConfigWrapper({params: { partner: partner, mode:'INTERNAL' }}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, false, partner));
+    })
+
+    it('customDomainIdServer', function() {
+      const domain = 'example.com';
+      expect(new ConfigWrapper({params: { domain: domain, mode:'INTERNAL' }}).getUrl().toString()).to.eq(expectedUrl(domain, false, DEFAULT_PARTNER));
+    })
+
+    it('customPartnerAndDomainIdServer', function() {
+      const partner = 'abc';
+      const domain = 'example.com';
+      expect(new ConfigWrapper({params: {partner: partner, domain: domain, mode:'INTERNAL' }}).getUrl().toString()).to.eq(expectedUrl(domain, false, partner));
     })
   });
 
@@ -48,14 +68,13 @@ describe('JustIdSystem', function () {
 
     it('without cachedIdObj', function() {
       const callbackSpy = sinon.spy();
-
-      justIdSubmodule.getId().callback(callbackSpy);
+      new ExternalUidProvider(new ConfigWrapper({})).getUid(callbackSpy);
 
       scriptTag.onload();
 
-      expect(callbackSpy.lastCall.lastArg.uid).to.equal('user123');
+      expect(callbackSpy.lastCall.lastArg).to.equal('user123');
     });
-
+/*
     it('with cachedIdObj', function() {
       const callbackSpy = sinon.spy();
 
@@ -79,9 +98,10 @@ describe('JustIdSystem', function () {
 
       expect(onPrebidGetId.lastCall.lastArg.detail).to.deep.eq({ config: a, consentData: b, cacheIdObj: c });
     });
+*/
   });
 });
 
-function expectedUrl(url, srcId) {
-  return `${url}?sourceId=${srcId}`
+function expectedUrl(domain, isExternalMode, srcId) {
+  return `https://${domain}/getId${isExternalMode ? '.js?sourceId=' + srcId : ''}`
 }
