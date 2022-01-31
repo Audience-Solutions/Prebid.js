@@ -29,8 +29,8 @@ export const justIdSubmodule = {
   /**
    * decode the stored id value for passing to bid requests
    * @function
-   * @param {{TDID:string}} value
-   * @returns {{tdid:Object}}
+   * @param {{uid:string}} value
+   * @returns {{justId:string}}
    */
   decode(value) {
     utils.logInfo(LOG_PREFIX, 'decode', value);
