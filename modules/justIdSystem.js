@@ -13,7 +13,7 @@ const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
 const DEFAULT_URL = 'https://id.nsaudience.pl/getId.js';
 const DEFAULT_PARTNER = 'pbjs-just-id-module';
-const DEFAULT_MODE = 'ATM';
+const DEFAULT_MODE = 'BASIC';
 
 /** @type {Submodule} */
 export const justIdSubmodule = {
@@ -59,7 +59,7 @@ export const justIdSubmodule = {
 
           var uidProvider = configWrapper.isAdvencedMode()
             ? new AdvencedUidProvider(configWrapper, consentData, cacheIdObj)
-            : new AtmUidProvider(configWrapper);
+            : new BasicUidProvider(configWrapper);
 
           uidProvider.getUid(justId => {
             if (utils.isEmptyStr(justId)) {
@@ -135,7 +135,7 @@ const AdvencedUidProvider = function(configWrapper, consentData, cacheIdObj) {
   }
 }
 
-const AtmUidProvider = function(configWrapper) {
+const BasicUidProvider = function(configWrapper) {
   const atmVarName = configWrapper.getAtmVarName();
 
   this.getUid = function(idCallback, errCallback) {
