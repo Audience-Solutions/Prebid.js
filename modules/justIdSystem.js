@@ -146,7 +146,7 @@ const BasicUidProvider = function(configWrapper) {
       errCallback('atm function not found');
       return
     }
-    return promiseWithTimeout(res => atm('getReadyState', res), 5000) // timeout has objectively large value, because ATM (JustTag library that may already exists on publisher page) are typically stubbed and deferred
+    return promiseWithTimeout(res => atm('getReadyState', res), 10000) // timeout has objectively large value, because ATM (JustTag library that may already exists on publisher page) are typically stubbed and deferred
       .then(() => atm('getVersion')) // atm('getVersion') returns string || Promise<string>
       .then(atmVersion => {
         utils.logInfo(LOG_PREFIX, 'ATM Version', atmVersion);
