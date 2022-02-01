@@ -94,7 +94,7 @@ export const ConfigWrapper = function(config) {
   }
 
   this.isAdvencedMode = function() {
-    return this.getMode() === 'ADVENCED';
+    return this.getMode().toUpperCase() === 'ADVENCED';
   }
 
   this.getAtmVarName = function() {
