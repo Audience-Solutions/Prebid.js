@@ -10,11 +10,11 @@ gulp build --modules=userId,justIdSystem
 
 ### Modes
 
-#### ATM
+- ATM
 In this mode we rely on Justtag library that elready exists on publisher page. Typialy that library expose global variable called `__atm`
 
-#### ADVENCED
-Just ID generation process may differ between various cases depends on publishers. This mode is required in deal with custom integrations between publisher and Justtag. 
+- ADVENCED
+Just ID generation process may differ between various cases depends on publishers. This mode is required in deal with custom integrations between publisher and Justtag.
 
 ### Disclosure
 
