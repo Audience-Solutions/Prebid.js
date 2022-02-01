@@ -16,7 +16,7 @@ gulp build --modules=userId,justIdSystem
 
 ### Disclosure
 
-This module in `ADVANCED` mode loads external JavaScript to generate optimal quality User ID. It is possible to generate user ID, without loading additional script in `BASIC` mode.
+This module in `ADVANCED` mode loads external JavaScript to generate optimal quality User ID. It is possible to retrieve user ID, without loading additional script by this module in `BASIC` mode.
 
 ### Prebid Params
 
