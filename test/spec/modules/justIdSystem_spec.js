@@ -91,7 +91,7 @@ describe('JustIdSystem', function () {
     });
   });
 
-  describe('getId advenced', function() {
+  describe('getId advanced', function() {
     const scriptTag = document.createElement('script');
 
     const onPrebidGetId = sinon.stub().callsFake(event => {
@@ -106,7 +106,7 @@ describe('JustIdSystem', function () {
 
     it('without cachedIdObj', function() {
       const callbackSpy = sinon.spy();
-      justIdSubmodule.getId({params: {mode: 'ADVENCED'}}).callback(callbackSpy);
+      justIdSubmodule.getId({params: {mode: 'ADVANCED'}}).callback(callbackSpy);
 
       scriptTag.onload();
 
@@ -116,7 +116,7 @@ describe('JustIdSystem', function () {
     it('with cachedIdObj', function() {
       const callbackSpy = sinon.spy();
 
-      justIdSubmodule.getId({params: {mode: 'ADVENCED'}}, undefined, { uid: 'userABC' }).callback(callbackSpy);
+      justIdSubmodule.getId({params: {mode: 'ADVANCED'}}, undefined, { uid: 'userABC' }).callback(callbackSpy);
 
       scriptTag.onload();
 
@@ -126,7 +126,7 @@ describe('JustIdSystem', function () {
     it('check getId arguments are passed to prebidGetId event', function() {
       const callbackSpy = sinon.spy();
 
-      const a = {params: {mode: 'ADVENCED'}}
+      const a = {params: {mode: 'ADVANCED'}}
       const b = { y: 'y' }
       const c = { z: 'z' }
 

@@ -12,17 +12,17 @@ gulp build --modules=userId,justIdSystem
 
 - **BASIC** - in this mode we rely on Justtag library that elready exists on publisher page. Typialy that library expose global variable called `__atm`
 
-- **ADVENCED** - Just ID generation process may differ between various cases depends on publishers. This mode is required to deal with custom integrations between publisher and Justtag.
+- **ADVANCED** - Just ID generation process may differ between various cases depends on publishers. This mode is required to deal with custom integrations between publisher and Justtag.
 
 ### Disclosure
 
-This module in `ADVENCED` mode loads external JavaScript to generate optimal quality User ID. It is possible to generate user ID, without loading additional script in `BASIC` mode.
+This module in `ADVANCED` mode loads external JavaScript to generate optimal quality User ID. It is possible to generate user ID, without loading additional script in `BASIC` mode.
 
 ### Prebid Params
 
 Individual params may be set for the Just ID Submodule.
 
-ex. 1. Mode `ADVENCED`
+ex. 1. Mode `ADVANCED`
 
 ```
 pbjs.setConfig({
@@ -30,7 +30,7 @@ pbjs.setConfig({
         userIds: [{
             name: 'justId',
             params: {
-                mode: 'ADVENCED'
+                mode: 'ADVANCED'
                 url: 'https://id.nsaudience.pl/getId.js', // optional
                 partner: 'pbjs-just-id-module'            // optional, may be required in some custom integrations with Justtag
             }
@@ -62,7 +62,7 @@ The below parameters apply only to the Just ID integration.
 | --- | --- | --- | --- | --- |
 | name | Required | String | ID of the module - `'justId'` | `'justId'` |
 | params | Optional | Object | Details for Just ID syncing. | |
-| params.mode | Optional | String | Mode in which the module works. Available Modes: `'ADVENCED'`, `'BASIC'`(default)   | `'ADVENCED'` |
+| params.mode | Optional | String | Mode in which the module works. Available Modes: `'ADVANCED'`, `'BASIC'`(default)   | `'ADVANCED'` |
 | params.atmVarName | Optional | String | Name of global object property that point to Justtag ATM Library. Defaults to `'__atm'` | `'__atm'` |
-| params.url | Optional | String | Optional API Url, used in `ADVENCED` mode | `'https://id.nsaudience.pl/getId.js'` |
+| params.url | Optional | String | Optional API Url, used in `ADVANCED` mode | `'https://id.nsaudience.pl/getId.js'` |
 | params.partner | Optional | String | This is the Justtag Partner Id which may be required in some custom integrations with Justtag | `'some-publisher'` |

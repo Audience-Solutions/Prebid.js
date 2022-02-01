@@ -57,8 +57,8 @@ export const justIdSubmodule = {
 
           var configWrapper = new ConfigWrapper(config);
 
-          var uidProvider = configWrapper.isAdvencedMode()
-            ? new AdvencedUidProvider(configWrapper, consentData, cacheIdObj)
+          var uidProvider = configWrapper.isAdvancedMode()
+            ? new AdvancedUidProvider(configWrapper, consentData, cacheIdObj)
             : new BasicUidProvider(configWrapper);
 
           uidProvider.getUid(justId => {
@@ -93,8 +93,8 @@ export const ConfigWrapper = function(config) {
     return params().partner || DEFAULT_PARTNER;
   }
 
-  this.isAdvencedMode = function() {
-    return this.getMode().toUpperCase() === 'ADVENCED';
+  this.isAdvancedMode = function() {
+    return this.getMode().toUpperCase() === 'ADVANCED';
   }
 
   this.getAtmVarName = function() {
@@ -113,7 +113,7 @@ export const ConfigWrapper = function(config) {
   }
 }
 
-const AdvencedUidProvider = function(configWrapper, consentData, cacheIdObj) {
+const AdvancedUidProvider = function(configWrapper, consentData, cacheIdObj) {
   const url = configWrapper.getUrl();
 
   this.getUid = function(idCallback, errCallback) {
