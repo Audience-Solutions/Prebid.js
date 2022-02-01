@@ -1,48 +1,28 @@
-import { justIdSubmodule, ConfigWrapper, ExternalUidProvider, jtUtils } from 'modules/justIdSystem.js';
+import { justIdSubmodule, ConfigWrapper, jtUtils } from 'modules/justIdSystem.js';
 
-const DEFAULT_DOMAIN = 'id.nsaudience.pl';
+const DEFAULT_URL = 'https://id.nsaudience.pl/getId.js';
 const DEFAULT_PARTNER = 'pbjs-just-id-module';
 
 describe('JustIdSystem', function () {
   describe('getUrl', function() {
     it('defaultUrl', function() {
-      expect(new ConfigWrapper({}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, true, DEFAULT_PARTNER));
+      expect(new ConfigWrapper({}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_URL, DEFAULT_PARTNER));
     })
 
     it('customPartner', function() {
       const partner = 'abc';
-      expect(new ConfigWrapper({params: {partner: partner}}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, true, partner));
+      expect(new ConfigWrapper({params: {partner: partner}}).getUrl()).to.eq(expectedUrl(DEFAULT_URL, partner));
     })
 
-    it('customDomain', function() {
-      const domain = 'example.com';
-      expect(new ConfigWrapper({params: {domain: domain}}).getUrl().toString()).to.eq(expectedUrl(domain, true, DEFAULT_PARTNER));
+    it('customUrl', function() {
+      const url = 'https://example.com/getId.js';
+      expect(new ConfigWrapper({params: {url: url}}).getUrl()).to.eq(expectedUrl(url, DEFAULT_PARTNER));
     })
 
-    it('customPartnerAndDomain', function() {
+    it('customPartnerAndUrl', function() {
       const partner = 'abc';
-      const domain = 'example.com';
-      expect(new ConfigWrapper({params: {partner: partner, domain: domain}}).getUrl().toString()).to.eq(expectedUrl(domain, true, partner));
-    })
-
-    it('defaultUrlIdServer', function() {
-      expect(new ConfigWrapper({ params: { mode:'INTERNAL' } }).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, false, DEFAULT_PARTNER));
-    })
-
-    it('customPartnerIdServer', function() {
-      const partner = 'abc';
-      expect(new ConfigWrapper({params: { partner: partner, mode:'INTERNAL' }}).getUrl().toString()).to.eq(expectedUrl(DEFAULT_DOMAIN, false, partner));
-    })
-
-    it('customDomainIdServer', function() {
-      const domain = 'example.com';
-      expect(new ConfigWrapper({params: { domain: domain, mode:'INTERNAL' }}).getUrl().toString()).to.eq(expectedUrl(domain, false, DEFAULT_PARTNER));
-    })
-
-    it('customPartnerAndDomainIdServer', function() {
-      const partner = 'abc';
-      const domain = 'example.com';
-      expect(new ConfigWrapper({params: {partner: partner, domain: domain, mode:'INTERNAL' }}).getUrl().toString()).to.eq(expectedUrl(domain, false, partner));
+      const url = 'https://example.com/getId.js';
+      expect(new ConfigWrapper({params: {partner: partner, url: url}}).getUrl()).to.eq(expectedUrl(url, partner));
     })
   });
 
@@ -53,7 +33,65 @@ describe('JustIdSystem', function () {
     })
   });
 
-  describe('getId', function() {
+  describe('getId atm', function() {
+    var atmMock;
+    var getAtmStub = sinon.stub(jtUtils, 'getAtm').callsFake(() => atmMock);
+
+    it('all ok', function(done) {
+      atmMock = (cmd, param) => {
+        switch (cmd) {
+          case 'getReadyState':
+            param('ready')
+            return;
+          case 'getVersion':
+            return '1.0';
+          case 'getUid':
+            param('user123');
+        }
+      }
+
+      const callbackSpy = sinon.stub();
+
+      callbackSpy.callsFake(idObj => {
+        try {
+          expect(idObj.uid).to.equal('user123');
+          done();
+        } catch (err) {
+          done(err);
+        }
+      })
+
+      const atmVarName = '__fakeAtm';
+
+      justIdSubmodule.getId({params: {atmVarName: atmVarName}}).callback(callbackSpy);
+
+      expect(getAtmStub.lastCall.lastArg).to.equal(atmVarName);
+    });
+
+    it('unsuported version', function(done) {
+      atmMock = (cmd, param) => {
+        switch (cmd) {
+          case 'getReadyState':
+            param('ready')
+        }
+      }
+
+      const callbackSpy = sinon.stub();
+
+      callbackSpy.callsFake(idObj => {
+        try {
+          expect(idObj).to.be.undefined
+          done();
+        } catch (err) {
+          done(err);
+        }
+      })
+
+      justIdSubmodule.getId({}).callback(callbackSpy);
+    });
+  });
+
+  describe('getId advenced', function() {
     const scriptTag = document.createElement('script');
 
     const onPrebidGetId = sinon.stub().callsFake(event => {
@@ -68,17 +106,17 @@ describe('JustIdSystem', function () {
 
     it('without cachedIdObj', function() {
       const callbackSpy = sinon.spy();
-      new ExternalUidProvider(new ConfigWrapper({})).getUid(callbackSpy);
+      justIdSubmodule.getId({params: {mode: 'ADVENCED'}}).callback(callbackSpy);
 
       scriptTag.onload();
 
-      expect(callbackSpy.lastCall.lastArg).to.equal('user123');
+      expect(callbackSpy.lastCall.lastArg.uid).to.equal('user123');
     });
-/*
+
     it('with cachedIdObj', function() {
       const callbackSpy = sinon.spy();
 
-      justIdSubmodule.getId(undefined, undefined, { uid: 'userABC' }).callback(callbackSpy);
+      justIdSubmodule.getId({params: {mode: 'ADVENCED'}}, undefined, { uid: 'userABC' }).callback(callbackSpy);
 
       scriptTag.onload();
 
@@ -88,7 +126,7 @@ describe('JustIdSystem', function () {
     it('check getId arguments are passed to prebidGetId event', function() {
       const callbackSpy = sinon.spy();
 
-      const a = { x: 'x' }
+      const a = {params: {mode: 'ADVENCED'}}
       const b = { y: 'y' }
       const c = { z: 'z' }
 
@@ -98,10 +136,9 @@ describe('JustIdSystem', function () {
 
       expect(onPrebidGetId.lastCall.lastArg.detail).to.deep.eq({ config: a, consentData: b, cacheIdObj: c });
     });
-*/
   });
 });
 
-function expectedUrl(domain, isExternalMode, srcId) {
-  return `https://${domain}/getId${isExternalMode ? '.js?sourceId=' + srcId : ''}`
+function expectedUrl(url, srcId) {
+  return `${url}?sourceId=${srcId}`
 }
