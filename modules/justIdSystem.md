@@ -47,7 +47,7 @@ pbjs.setConfig({
         userIds: [{
             name: 'justId',
             params: {
-                mode: 'BASIC',
+                mode: 'BASIC',       // default
                 atmVarName: '__atm'  // optional
             }
         }]
