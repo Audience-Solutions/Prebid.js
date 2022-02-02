@@ -95,7 +95,7 @@ describe('JustIdSystem', function () {
     it('work with stub', function(done) {
       var calls = [];
       currentAtm = (cmd, param) => {
-        calls.push({cmd:cmd, param:param});
+        calls.push({cmd: cmd, param: param});
       }
 
       const callbackSpy = sinon.stub();
@@ -115,7 +115,6 @@ describe('JustIdSystem', function () {
       expect(calls.length).to.equal(1);
       expect(calls[0].cmd).to.equal('getReadyState');
       calls[0].param('ready')
-
     });
   });
 
@@ -134,7 +133,7 @@ describe('JustIdSystem', function () {
 
     it('without cachedIdObj', function() {
       const callbackSpy = sinon.spy();
-      justIdSubmodule.getId({params: {mode: 'ADVANCED'}}).callback(callbackSpy);
+      justIdSubmodule.getId({ params: { mode: 'ADVANCED' } }).callback(callbackSpy);
 
       scriptTag.onload();
 
@@ -144,7 +143,7 @@ describe('JustIdSystem', function () {
     it('with cachedIdObj', function() {
       const callbackSpy = sinon.spy();
 
-      justIdSubmodule.getId({params: {mode: 'ADVANCED'}}, undefined, { uid: 'userABC' }).callback(callbackSpy);
+      justIdSubmodule.getId({ params: { mode: 'ADVANCED' } }, undefined, { uid: 'userABC' }).callback(callbackSpy);
 
       scriptTag.onload();
 
@@ -154,7 +153,7 @@ describe('JustIdSystem', function () {
     it('check getId arguments are passed to prebidGetId event', function() {
       const callbackSpy = sinon.spy();
 
-      const a = {params: {mode: 'ADVANCED'}}
+      const a = { params: { mode: 'ADVANCED' } }
       const b = { y: 'y' }
       const c = { z: 'z' }
 

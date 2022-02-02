@@ -150,7 +150,7 @@ const BasicUidProvider = function(configWrapper) {
       return
     }
 
-    var atm = function() { // stub is replaced after ATM is loaded so wee must refer them directly by global variable
+    atm = function() { // stub is replaced after ATM is loaded so wee must refer them directly by global variable
       return getAtm().apply(this, arguments);
     }
 
