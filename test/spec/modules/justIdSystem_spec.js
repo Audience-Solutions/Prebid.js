@@ -40,7 +40,7 @@ describe('JustIdSystem', function () {
           param('ready')
           return;
         case 'getVersion':
-          return '1.0';
+          return Promise.resolve('1.0');
         case 'getUid':
           param('user123');
       }

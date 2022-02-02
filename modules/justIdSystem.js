@@ -146,45 +146,30 @@ const BasicUidProvider = function(configWrapper) {
     var atm = getAtm();
     if (typeof atm !== 'function') { // it may be AsyncFunction, so we can't use utils.isFn
       utils.logInfo(LOG_PREFIX, 'ATM function not found!', atmVarName, atm);
-      errCallback('atm function not found');
+      errCallback('ATM not found');
       return
     }
 
-    atm = function() { // stub is replaced after ATM is loaded so wee must refer them directly by global variable
+    atm = function() { // stub is replaced after ATM is loaded so we must refer them directly by global variable
       return getAtm().apply(this, arguments);
     }
 
-    return promiseWithTimeout(res => atm('getReadyState', res), 10000) // timeout has objectively large value, because ATM (JustTag library that may already exists on publisher page) are typically stubbed and deferred
-      .then(() => atm('getVersion')) // atm('getVersion') returns string || Promise<string>
-      .then(atmVersion => {
-        utils.logInfo(LOG_PREFIX, 'ATM Version', atmVersion);
-        if (utils.isStr(atmVersion)) { // getVersion command was introduced in same ATM version as getUid command
-          atm('getUid', idCallback);
-        } else {
-          errCallback('ATM getUid not supported');
-        }
-      });
+    atm('getReadyState', () => {
+      Promise.resolve(atm('getVersion')) // atm('getVersion') returns string || Promise<string>
+        .then(atmVersion => {
+          utils.logInfo(LOG_PREFIX, 'ATM Version', atmVersion);
+          if (utils.isStr(atmVersion)) { // getVersion command was introduced in same ATM version as getUid command
+            atm('getUid', idCallback);
+          } else {
+            errCallback('ATM getUid not supported');
+          }
+        })
+    });
   }
 
   function getAtm() {
     return jtUtils.getAtm(atmVarName);
   }
-}
-
-function promiseWithTimeout(promiseFun, time) {
-  return new Promise((resolve, reject) => {
-    var tm = setTimeout(() => {
-      reject(new Error('timeout'));
-    }, time);
-
-    function callAndClearTimeout(fn) {
-      return arg => {
-        clearTimeout(tm);
-        return fn(arg);
-      }
-    }
-    promiseFun(callAndClearTimeout(resolve), callAndClearTimeout(reject));
-  });
 }
 
 export const jtUtils = {
