@@ -13,7 +13,11 @@ const LOG_PREFIX = 'User ID - JustId submodule: ';
 const GVLID = 160;
 const DEFAULT_URL = 'https://id.nsaudience.pl/getId.js';
 const DEFAULT_PARTNER = 'pbjs-just-id-module';
-const DEFAULT_MODE = 'BASIC';
+const DEFAULT_ATM_VAR_NAME = '__atm';
+
+const MODE_BASIC = 'BASIC';
+const MODE_ADVANCED = 'ADVANCED';
+const DEFAULT_MODE = MODE_BASIC;
 
 /** @type {Submodule} */
 export const justIdSubmodule = {
@@ -86,7 +90,7 @@ export const ConfigWrapper = function(config) {
   }
 
   this.getMode = function() {
-    return params().mode || DEFAULT_MODE;
+    return (params().mode || DEFAULT_MODE).toUpperCase();
   }
 
   this.getPartner = function() {
@@ -94,11 +98,11 @@ export const ConfigWrapper = function(config) {
   }
 
   this.isAdvancedMode = function() {
-    return this.getMode().toUpperCase() === 'ADVANCED';
+    return this.getMode() === MODE_ADVANCED;
   }
 
   this.getAtmVarName = function() {
-    return params().atmVarName || '__atm';
+    return params().atmVarName || DEFAULT_ATM_VAR_NAME;
   }
 
   this.getUrl = function() {
@@ -139,13 +143,17 @@ const BasicUidProvider = function(configWrapper) {
   const atmVarName = configWrapper.getAtmVarName();
 
   this.getUid = function(idCallback, errCallback) {
-    var atm = jtUtils.getAtm(atmVarName);
-
-    if (typeof atm !== 'function') {
+    var atm = getAtm();
+    if (typeof atm !== 'function') { // it may be AsyncFunction, so we can't use utils.isFn
       utils.logInfo(LOG_PREFIX, 'ATM function not found!', atmVarName, atm);
       errCallback('atm function not found');
       return
     }
+
+    var atm = function() { // stub is replaced after ATM is loaded so wee must refer them directly by global variable
+      return getAtm().apply(this, arguments);
+    }
+
     return promiseWithTimeout(res => atm('getReadyState', res), 10000) // timeout has objectively large value, because ATM (JustTag library that may already exists on publisher page) are typically stubbed and deferred
       .then(() => atm('getVersion')) // atm('getVersion') returns string || Promise<string>
       .then(atmVersion => {
@@ -156,6 +164,10 @@ const BasicUidProvider = function(configWrapper) {
           errCallback('ATM getUid not supported');
         }
       });
+  }
+
+  function getAtm() {
+    return jtUtils.getAtm(atmVarName);
   }
 }
 

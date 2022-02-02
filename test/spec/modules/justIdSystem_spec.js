@@ -34,22 +34,24 @@ describe('JustIdSystem', function () {
   });
 
   describe('getId atm', function() {
-    var atmMock;
-    var getAtmStub = sinon.stub(jtUtils, 'getAtm').callsFake(() => atmMock);
+    var atmMock = (cmd, param) => {
+      switch (cmd) {
+        case 'getReadyState':
+          param('ready')
+          return;
+        case 'getVersion':
+          return '1.0';
+        case 'getUid':
+          param('user123');
+      }
+    }
+
+    var currentAtm;
+
+    var getAtmStub = sinon.stub(jtUtils, 'getAtm').callsFake(() => currentAtm);
 
     it('all ok', function(done) {
-      atmMock = (cmd, param) => {
-        switch (cmd) {
-          case 'getReadyState':
-            param('ready')
-            return;
-          case 'getVersion':
-            return '1.0';
-          case 'getUid':
-            param('user123');
-        }
-      }
-
+      currentAtm = atmMock;
       const callbackSpy = sinon.stub();
 
       callbackSpy.callsFake(idObj => {
@@ -69,7 +71,7 @@ describe('JustIdSystem', function () {
     });
 
     it('unsuported version', function(done) {
-      atmMock = (cmd, param) => {
+      currentAtm = (cmd, param) => {
         switch (cmd) {
           case 'getReadyState':
             param('ready')
@@ -88,6 +90,32 @@ describe('JustIdSystem', function () {
       })
 
       justIdSubmodule.getId({}).callback(callbackSpy);
+    });
+
+    it('work with stub', function(done) {
+      var calls = [];
+      currentAtm = (cmd, param) => {
+        calls.push({cmd:cmd, param:param});
+      }
+
+      const callbackSpy = sinon.stub();
+
+      callbackSpy.callsFake(idObj => {
+        try {
+          expect(idObj.uid).to.equal('user123');
+          done();
+        } catch (err) {
+          done(err);
+        }
+      })
+
+      justIdSubmodule.getId({}).callback(callbackSpy);
+
+      currentAtm = atmMock;
+      expect(calls.length).to.equal(1);
+      expect(calls[0].cmd).to.equal('getReadyState');
+      calls[0].param('ready')
+
     });
   });
 
