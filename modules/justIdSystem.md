@@ -16,11 +16,9 @@ gulp build --modules=userId,justIdSystem
 
 ### Disclosure
 
-This module in `ADVANCED` mode loads external JavaScript to generate optimal quality User ID. It is possible to retrieve user ID, without loading additional script by this module in `BASIC` mode.
+This module in `ADVANCED` mode loads external JavaScript to generate optimal quality user ID. It is possible to retrieve user ID, without loading additional script by this module in `BASIC` mode.
 
-### Prebid Params
-
-Individual params may be set for the Just ID Submodule.
+### Just ID Example
 
 ex. 1. Mode `ADVANCED`
 
@@ -54,6 +52,10 @@ pbjs.setConfig({
     }
 });
 ```
+
+### Prebid Params
+
+Individual params may be set for the Just ID Submodule.
 
 ## Parameter Descriptions for the `userSync` Configuration Section
 The below parameters apply only to the Just ID integration.
