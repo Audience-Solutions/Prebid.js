@@ -203,18 +203,6 @@ function expectedUrl(url, srcId) {
   return `${url}?sourceId=${srcId}`
 }
 
-function configModeBasic(url, partner) {
-  var conf = {
-    params: {
-      mode: 'BASIC'
-    }
-  }
-  url && (conf.params.url = url);
-  partner && (conf.params.partner = partner);
-
-  return conf;
-}
-
 function configModeCombined(url, partner) {
   var conf = {
     params: {
