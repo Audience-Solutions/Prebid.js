@@ -131,7 +131,8 @@ export const ConfigWrapper = function(config) {
     throw EX_INVALID_MODE;
   }
 
-  if (this.isCombinedMode() && !utils.isStr(params().url)) {
+  var url = params().url;
+  if (this.isCombinedMode() && (utils.isEmptyStr(url) || !utils.isStr(url))) {
     throw EX_URL_REQUIRED;
   }
 }
