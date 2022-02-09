@@ -8,6 +8,7 @@
 import * as utils from '../src/utils.js'
 import { submodule } from '../src/hook.js'
 import { loadExternalScript } from '../src/adloader.js'
+import includes from 'prebidjs-polyfill/includes.js';
 
 const MODULE_NAME = 'justId';
 const EXTERNAL_SCRIPT_MODULE_CODE = 'justtag';
@@ -21,6 +22,7 @@ const MODE_COMBINED = 'COMBINED';
 const DEFAULT_MODE = MODE_BASIC;
 
 export const EX_URL_REQUIRED = new Error('params.url is required in COMBINED mode');
+export const EX_INVALID_MODE = new Error(`Invalid params.mode. Allowed values: ${MODE_BASIC}, ${MODE_COMBINED}`);
 
 /** @type {Submodule} */
 export const justIdSubmodule = {
@@ -125,6 +127,10 @@ export const ConfigWrapper = function(config) {
   }
 
   // validation
+  if (!includes([MODE_BASIC, MODE_COMBINED], this.getMode())) {
+    throw EX_INVALID_MODE;
+  }
+
   if (this.isCombinedMode() && !utils.isStr(params().url)) {
     throw EX_URL_REQUIRED;
   }

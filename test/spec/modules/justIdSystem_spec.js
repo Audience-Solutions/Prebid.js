@@ -1,4 +1,4 @@
-import { justIdSubmodule, ConfigWrapper, jtUtils, EX_URL_REQUIRED } from 'modules/justIdSystem.js';
+import { justIdSubmodule, ConfigWrapper, jtUtils, EX_URL_REQUIRED, EX_INVALID_MODE } from 'modules/justIdSystem.js';
 import { loadExternalScriptStub } from 'test/mocks/adloaderStub.js';
 import * as utils from 'src/utils.js';
 
@@ -7,7 +7,11 @@ const DEFAULT_PARTNER = 'pbjs-just-id-module';
 const url = 'https://example.com/getId.js';
 
 describe('JustIdSystem', function () {
-  describe('getUrl', function() {
+  describe('configWrapper', function() {
+    it('invalid mode', function() {
+      expect(() => new ConfigWrapper({ params: { mode: 'invalidmode' } })).to.throw(EX_INVALID_MODE);
+    })
+
     it('url is required', function() {
       expect(() => new ConfigWrapper(configModeCombined())).to.throw(EX_URL_REQUIRED);
     })
