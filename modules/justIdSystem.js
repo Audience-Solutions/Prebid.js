@@ -21,7 +21,7 @@ const MODE_BASIC = 'BASIC';
 const MODE_COMBINED = 'COMBINED';
 const DEFAULT_MODE = MODE_BASIC;
 
-export const EX_URL_REQUIRED = new Error('params.url is required in COMBINED mode');
+export const EX_URL_REQUIRED = new Error(`params.url is required in ${MODE_COMBINED} mode`);
 export const EX_INVALID_MODE = new Error(`Invalid params.mode. Allowed values: ${MODE_BASIC}, ${MODE_COMBINED}`);
 
 /** @type {Submodule} */
