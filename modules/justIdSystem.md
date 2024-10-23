@@ -31,6 +31,12 @@ pbjs.setConfig({
                 mode: 'COMBINED',
                 url: 'https://id.nsaudience.pl/getId.js', // required in COMBINED mode
                 partner: 'pbjs-just-id-module'            // optional, may be required in some custom integrations with Justtag
+            },
+            storage:{
+                expires: 365,
+                name: 'justId',
+                refreshInSeconds: 1,
+                type: 'html5'
             }
         }]
     }
@@ -47,6 +53,12 @@ pbjs.setConfig({
             params: {
                 mode: 'BASIC',       // default
                 atmVarName: '__atm'  // optional
+            },
+            storage:{
+                expires: 365,
+                name: 'justId',
+                refreshInSeconds: 1,
+                type: 'html5'
             }
         }]
     }
@@ -68,3 +80,8 @@ The below parameters apply only to the Just ID integration.
 | params.atmVarName | Optional | String | Name of global object property that point to Justtag ATM Library. Defaults to `'__atm'` | `'__atm'` |
 | params.url | Optional | String | API Url, **required** in `COMBINED` mode | `'https://id.nsaudience.pl/getId.js'` |
 | params.partner | Optional | String | This is the Justtag Partner Id which may be required in some custom integrations with Justtag | `'some-publisher'` |
+| storage | Required | Object | Storage settings for how the User ID module will cache the JustId locally | |
+| storage.type | Required | String | This is where the results of the user ID will be stored. | `"html5"` |
+| storage.name | Required | String | The name of the local storage where the user ID will be stored. | `"justId"` |
+| storage.expires | Optional | Integer | How long (in days) the user ID information will be stored. | `365` |
+| storage.refreshInSeconds | Optional | Integer | How many seconds until the ID will be refreshed. We strongly recommends 10 minutes between refreshes | `600` |
